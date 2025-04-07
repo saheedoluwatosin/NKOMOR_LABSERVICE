@@ -1,14 +1,16 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { AuthDto } from "src/dto";
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { AuthDto, SigninDto } from "src/dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import * as argon from 'argon2';
+import { ConfigService } from "@nestjs/config";
+import { JwtModule, JwtService } from "@nestjs/jwt";
 
 
 
 
 @Injectable()
 export class AuthService{
-    constructor(private prisma: PrismaService){}
+    constructor(private prisma: PrismaService, private config:ConfigService, private jwtService: JwtService ){}
 
     async generateCustomId(): Promise<string> {
         const year = new Date().getFullYear().toString().slice(-2); // Get last 2 digits of the year (e.g., 24 for 2024)
@@ -118,5 +120,42 @@ export class AuthService{
 
 
 
-    signin(){}
+   async signin(dto:SigninDto){
+        const {email,password} = dto
+        try {
+          const existingUser = await this.prisma.user.findUnique({where:{email}})
+          
+          if(!existingUser){
+            throw new ForbiddenException ('User doesnt exist please register');
+          }
+
+          const pwdMatches = await argon.verify(existingUser.password,password)
+          if(!pwdMatches){
+            throw new ForbiddenException ('Invalid credentials');
+          }
+
+          const token = await this.signInToken(existingUser.customId,existingUser.email,existingUser.role)
+          return token
+
+        } catch (error) {
+          throw new BadRequestException(error.message);
+        }
+
+    }
+
+
+   async signInToken(userid:String,email:String,role:string){
+    const payload = {
+        sub: userid,
+        email,
+        role
+    }
+
+    return {
+        access_token: this.jwtService.sign(payload,{
+            secret: this.config.get('JWT_SECRET'),
+            expiresIn: this.config.get('JWT_EXPIRES_IN')
+        }),
+    }
+   }
 }

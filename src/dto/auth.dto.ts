@@ -6,6 +6,7 @@ import { ProviderType, Role } from "@prisma/client";
 
 
 
+
 export class AuthDto {
 
   @IsEmail()
