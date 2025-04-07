@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ServiceController } from './service.controller';
 
-@Module({})
+@Module({
+    controllers: [ServiceController],
+})
 export class ServiceModule {}
