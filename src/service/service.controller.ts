@@ -10,7 +10,7 @@ import { AuthGuard } from "@nestjs/passport";
 export class ServiceController {
     constructor() {}
     
-    @UseGuards(AuthGuard('Jwt'))
+    @UseGuards(AuthGuard('jwt'))
     @Get('allservices')
     async getAllServices() {
         return "this is all services";
