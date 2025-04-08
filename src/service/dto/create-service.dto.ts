@@ -13,13 +13,13 @@ export class CreateServiceDto {
 
     @IsString()
     @IsNotEmpty()
-    category: string[];
+    categories: string;
 
     @IsNumber()
     price : number;
 
     @IsEnum(ServiceStatus)
-    service : ServiceStatus;
+    status : ServiceStatus;
 
     @IsString()
     @IsOptional()
